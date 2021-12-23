@@ -108,6 +108,4 @@ if __name__ == "__main__":
             id = os.environ.get("MQL_ID")
             )
         
-        checkMetaTrader.check()  
-    else:
-        exit
+        checkMetaTrader.check()
