@@ -5,6 +5,7 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 from dotenv import dotenv_values
+import time
 
 def checkDotEnv():
     mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE','SEND_MAIL', 'CHANGE_AUTOMATICALLY']
@@ -39,8 +40,13 @@ class CheckMetatrader:
     def getEmailMissconfiguredSubject(self):
         return  'Se ha desconfigurado la cuenta de MQL en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b>.'
       
-    def getEmailNotSellingSubject(self):
-        return  'Se ha desconfigurado el check de MQL para vender el procesamiento en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b>.'
+    def getEmailNotSellingSubject(self, automaticallyChange):
+        if(automaticallyChange):
+            a = 'y ha sido modificado automaticamente'
+        else:
+            a = 'y noo ha sido modificado automáticamente, debe hacerlo de forma manual.'
+
+        return  'Se ha desconfigurado el check de MQL para vender el procesamiento en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b> ' + a
 
     def getGenericHTML(self, message):
         return  """
@@ -68,11 +74,13 @@ class CheckMetatrader:
             for line in allLines:
                 lineSplitted = line.split('=')
                 if (line.startswith('Mode') and lineSplitted[1].rstrip() == self.sellMode):
-                    message = message + self.getEmailNotSellingSubject() + '<br>'
-                    print(self.getEmailNotSellingSubject())
-
+                    automaticallyChange = False
                     if self.checkIfChangeAutomaticaly():
                         newLines.append('Mode=' + self.sellMode + '\n')
+                        automaticallyChange = True
+                    
+                    message = message + self.getEmailNotSellingSubject(automaticallyChange) + '<br>'
+                    print(self.getEmailNotSellingSubject(automaticallyChange))
 
                 elif (line.startswith('Id') and lineSplitted[1].rstrip() != self.id):
                     message = message + self.getEmailMissconfiguredSubject() + '<br>'
@@ -135,3 +143,4 @@ if __name__ == "__main__":
             )
         
         checkMetaTrader.check()
+        time.sleep(10)
