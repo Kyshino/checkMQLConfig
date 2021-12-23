@@ -37,16 +37,13 @@ class CheckMetatrader:
         self.id = id
         self.sellMode = "2"
 
-    def getEmailMissconfiguredSubject(self):
-        return  'Se ha desconfigurado la cuenta de MQL en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b>.'
+    def getEmailMissconfiguredSubject(self, automaticallyChange):
+        automaticallyChangeMessage = 'y ha sido modificado automaticamente.' if automaticallyChange else 'y no ha sido modificado automáticamente, debe hacerlo de forma manual.'
+        return  'Se ha desconfigurado la cuenta de MQL en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b> ' + automaticallyChangeMessage
       
     def getEmailNotSellingSubject(self, automaticallyChange):
-        if(automaticallyChange):
-            a = 'y ha sido modificado automaticamente'
-        else:
-            a = 'y noo ha sido modificado automáticamente, debe hacerlo de forma manual.'
-
-        return  'Se ha desconfigurado el check de MQL para vender el procesamiento en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b> ' + a
+        automaticallyChangeMessage = 'y ha sido modificado automaticamente.' if automaticallyChange else 'y no ha sido modificado automáticamente, debe hacerlo de forma manual.'
+        return  'Se ha desconfigurado el check de MQL para vender el procesamiento en el equipo <b>' + os.environ['COMPUTERNAME'] + '</b> ' + automaticallyChangeMessage
 
     def getGenericHTML(self, message):
         return  """
@@ -73,7 +70,7 @@ class CheckMetatrader:
             newLines = []
             for line in allLines:
                 lineSplitted = line.split('=')
-                if (line.startswith('Mode') and lineSplitted[1].rstrip() == self.sellMode):
+                if (line.startswith('Mode') and lineSplitted[1].rstrip() != self.sellMode):
                     automaticallyChange = False
                     if self.checkIfChangeAutomaticaly():
                         newLines.append('Mode=' + self.sellMode + '\n')
@@ -83,11 +80,13 @@ class CheckMetatrader:
                     print(self.getEmailNotSellingSubject(automaticallyChange))
 
                 elif (line.startswith('Id') and lineSplitted[1].rstrip() != self.id):
-                    message = message + self.getEmailMissconfiguredSubject() + '<br>'
-                    print(self.getEmailMissconfiguredSubject())
-
+                    automaticallyChange = False
                     if self.checkIfChangeAutomaticaly():
+                        automaticallyChange = True
                         newLines.append('Id=' + self.id + '\n')
+
+                    message = message + self.getEmailMissconfiguredSubject(automaticallyChange) + '<br>'
+                    print(self.getEmailMissconfiguredSubject(automaticallyChange))
                 else:
                     newLines.append(line)
             file.writelines(newLines)
