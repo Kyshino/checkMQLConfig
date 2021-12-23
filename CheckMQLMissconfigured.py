@@ -8,7 +8,7 @@ from dotenv import dotenv_values
 
 def checkDotEnv():
     mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE']
-    optionalVariables = ['EMAIL_SUBJECT', 'a']
+    optionalVariables = ['EMAIL_SUBJECT']
     notIn = []
     optionalNotIn = []
     values = dotenv_values(join(dirname(__file__), '.env'))
