@@ -59,10 +59,10 @@ class CheckMetatrader:
         message = ''
         for line in lines:
             lineSplitted = line.split('=')
-            if (line.startswith('Mode') and lineSplitted[1].rstrip() == self.sellMode):
+            if (line.startswith('Mode') and lineSplitted[1].rstrip() != self.sellMode):
                 message = message + self.getEmailNotSellingSubject() + '<br>'
                 print(self.getEmailNotSellingSubject())
-            elif (line.startswith('Id') and lineSplitted[1].rstrip() == self.id):
+            elif (line.startswith('Id') and lineSplitted[1].rstrip() != self.id):
                 message = message + self.getEmailMissconfiguredSubject() + '<br>'
                 print(self.getEmailMissconfiguredSubject())
         
