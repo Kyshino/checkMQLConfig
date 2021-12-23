@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from dotenv import dotenv_values
 
 def checkDotEnv():
-    mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE']
+    mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE','SEND_MAIL', 'CHANGE_AUTOMATICALLY']
     optionalVariables = ['EMAIL_SUBJECT']
     notIn = []
     optionalNotIn = []
@@ -52,29 +52,55 @@ class CheckMetatrader:
             """+message+"""
             </html>
         """
+    def checkIfChangeAutomaticaly(self):
+        return 'CHANGE_AUTOMATICALLY' in dotenv_values(join(dirname(__file__), '.env')) and os.environ.get("CHANGE_AUTOMATICALLY").lower() == 'true'
+    
+    def checkIfSendMail(self):
+        return 'SEND_MAIL' in dotenv_values(join(dirname(__file__), '.env')) and os.environ.get("SEND_MAIL").lower() == 'true'
 
     def check(self):  
         file = open(self.route, "r")
-        lines = file.readlines()
-        message = ''
-        for line in lines:
-            lineSplitted = line.split('=')
-            if (line.startswith('Mode') and lineSplitted[1].rstrip() != self.sellMode):
-                message = message + self.getEmailNotSellingSubject() + '<br>'
-                print(self.getEmailNotSellingSubject())
-            elif (line.startswith('Id') and lineSplitted[1].rstrip() != self.id):
-                message = message + self.getEmailMissconfiguredSubject() + '<br>'
-                print(self.getEmailMissconfiguredSubject())
+        allLines = file.readlines()
+        try:
+            file = open(self.route, "w")
+            message = ''
+            newLines = []
+            for line in allLines:
+                lineSplitted = line.split('=')
+                if (line.startswith('Mode') and lineSplitted[1].rstrip() == self.sellMode):
+                    message = message + self.getEmailNotSellingSubject() + '<br>'
+                    print(self.getEmailNotSellingSubject())
+
+                    if self.checkIfChangeAutomaticaly():
+                        newLines.append('Mode=' + self.sellMode + '\n')
+
+                elif (line.startswith('Id') and lineSplitted[1].rstrip() != self.id):
+                    message = message + self.getEmailMissconfiguredSubject() + '<br>'
+                    print(self.getEmailMissconfiguredSubject())
+
+                    if self.checkIfChangeAutomaticaly():
+                        newLines.append('Id=' + self.id + '\n')
+                else:
+                    newLines.append(line)
+            file.writelines(newLines)
+            file.close()
+        except:
+            file.writelines(allLines)
+            file.close()
         
         if(message != ''):
-            subj = os.environ.get("EMAIL_SUBJECT") if ('EMAIL_SUBJECT' in dotenv_values(join(dirname(__file__), '.env'))) and os.environ.get("EMAIL_SUBJECT") != '' else 'Check Metatrader Missconfigured'
-            email = Email(
-                email = os.environ.get("EMAIL_FROM"),
-                password = os.environ.get("EMAIL_PASSWORD"),
-                message = self.getGenericHTML(message),
-                subject = subj
+            if self.checkIfSendMail():
+                subj = os.environ.get("EMAIL_SUBJECT") if ('EMAIL_SUBJECT' in dotenv_values(join(dirname(__file__), '.env'))) and os.environ.get("EMAIL_SUBJECT") != '' else 'Check Metatrader Missconfigured'
+                
+                email = Email(
+                    email = os.environ.get("EMAIL_FROM"),
+                    password = os.environ.get("EMAIL_PASSWORD"),
+                    message = self.getGenericHTML(message),
+                    subject = subj
                 )
-            email.sendMail()
+                
+                email.sendMail()
+            print('All config is correct.') 
 
 class Email:
     def __init__(self, email, password, message, subject):
