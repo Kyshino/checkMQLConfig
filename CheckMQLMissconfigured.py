@@ -5,7 +5,6 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 from dotenv import dotenv_values
-import time
 
 def checkDotEnv():
     mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE','SEND_MAIL', 'CHANGE_AUTOMATICALLY']
@@ -142,4 +141,3 @@ if __name__ == "__main__":
             )
         
         checkMetaTrader.check()
-        time.sleep(10)
