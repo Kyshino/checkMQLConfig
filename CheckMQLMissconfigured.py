@@ -5,6 +5,7 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 from dotenv import dotenv_values
+import time
 
 def checkDotEnv():
     mandatoryVariables = ['EMAIL_FROM', 'EMAIL_PASSWORD','EMAIL_TO','EMAIL_SMTP','EMAIL_PORT','MQL_ID','MQL_COMMON_ROUTE','SEND_MAIL', 'CHANGE_AUTOMATICALLY']
@@ -106,6 +107,7 @@ class CheckMetatrader:
                 )
                 
                 email.sendMail()
+        else:
             print('All config is correct.') 
 
 class Email:
@@ -132,12 +134,12 @@ class Email:
         s.quit()
 
 
-if __name__ == "__main__":
-    if (checkDotEnv()):
-        load_dotenv(join(dirname(__file__), '.env'))
-        checkMetaTrader = CheckMetatrader(
-            route = os.environ.get("MQL_COMMON_ROUTE"),
-            id = os.environ.get("MQL_ID")
-            )
-        
-        checkMetaTrader.check()
+if (checkDotEnv()):
+    load_dotenv(join(dirname(__file__), '.env'))
+    checkMetaTrader = CheckMetatrader(
+        route = os.environ.get("MQL_COMMON_ROUTE"),
+        id = os.environ.get("MQL_ID")
+        )
+    
+    checkMetaTrader.check()
+    time.sleep(5)
